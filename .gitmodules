@@ -1,6 +1,3 @@
-[submodule "rocknetmanager"]
-	path = rocknetmanager
-	url = https://github.com/IDGRockFragmentationAnaliz/rocknetmanager.git
 [submodule "pyrockstats"]
 	path = pyrockstats
 	url = https://github.com/IDGRockFragmentationAnaliz/pyrockstats.git

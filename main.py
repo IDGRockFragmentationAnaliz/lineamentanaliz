@@ -16,7 +16,7 @@ shape_path = (
 
 lines, bbox = shape_lines_save(shape_path)
 
-
+exit()
 shape = (bbox[2] - bbox[0] + 1, bbox[3] - bbox[1] + 1)
 new_shape = (1000, 1000)
 
