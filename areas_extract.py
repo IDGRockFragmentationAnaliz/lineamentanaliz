@@ -17,30 +17,34 @@ from tqdm import tqdm
 
 
 def main():
-    #lines_str_names = ["30",]
-    lines1_str = "120"
+    # lines_str_names = ["30",]
+    lines1_str = "30"
     root_path = Path("D:/1.ToSaver/profileimages/ShapeBaikal/lineaments")
     shape_path = root_path / ("FABDEM_" + lines1_str)
-
+    
     with open(str(root_path / "config.json"), 'r') as file:
         data = json.load(file)
-        buffer = data[lines1_str]["buffer"]
-
+        buffer = data[lines1_str]["buffer"]*2  # radius -> diameter
+    
     line_map = LineamentsMap(shape_path, buffer)
     data = {}
-    for i in tqdm(range(500)):
-        areas, centers = line_map.get_areas_corrected(rate=0.4, return_centers=False)
+    for i in tqdm(range(10)):
+        areas, centers = line_map.get_areas_corrected(
+            rate=0.4,
+            return_centers=False,
+            exclude_mincircle=True
+        )
         samples_set = {
             "areas": np.int64(areas).tolist(),
             "centers": np.int64(centers).tolist() if centers is not None else None
         }
         data[i] = samples_set
-
+    
     with open((root_path / ("areas_" + lines1_str + ".json")), 'w') as json_file:
         json.dump(data, json_file, indent=4)
-
-    #print(data["areas"])
-    #savemat((root_path / ("areas_" + lines1_str + ".mat")), data)
+    
+    # print(data["areas"])
+    # savemat((root_path / ("areas_" + lines1_str + ".mat")), data)
 
 
 if __name__ == '__main__':

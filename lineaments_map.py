@@ -13,12 +13,13 @@ import json
 
 from pyrockshape import shape_load
 from scipy.io import savemat
-
 from time import time
+
+
 class LineamentsMap:
 
     LINE_COLOR = (255,)
-    DEFAULT_SHAPE_X = 5000
+    DEFAULT_SHAPE_X = 3600*4
 
     def __init__(self, lines_folder: Path, buffer=1):
         lines, bbox = shape_load(lines_folder)
@@ -50,7 +51,7 @@ class LineamentsMap:
         shape_y = int(height * scale)
         shape = (shape_y, shape_x)
         buffer = int(buffer * scale)
-
+        print(buffer)
         return scale, shape, buffer, shift
 
     def _world_to_pixels(self, coord):
@@ -76,7 +77,7 @@ class LineamentsMap:
         image = cv2.polylines(image, lines, False, self.LINE_COLOR, self.pixel_buffer)
         return image
 
-    def get_areas(self, rate=0, return_centers=True):
+    def get_areas(self, rate=0, return_centers=True, exclude_mincircle=True):
         if rate == 0:
             lines = self.lines
         else:
@@ -90,15 +91,16 @@ class LineamentsMap:
             areas, centers = Extractor(segments).extruct_centers()
         else:
             areas = Extractor(segments).extruct_areas()
-
-        mask = areas > self.min_area
-        areas = areas[mask]
-        centers = centers[mask] if centers is not None else None
+        
+        if exclude_mincircle is True:
+            mask = areas > self.min_area
+            areas = areas[mask]
+            centers = centers[mask] if centers is not None else None
 
         return areas, centers
 
-    def get_areas_corrected(self, rate=0, return_centers=True):
-        s, centers = self.get_areas(rate, return_centers)
+    def get_areas_corrected(self, rate=0, return_centers=True, exclude_mincircle=True):
+        s, centers = self.get_areas(rate, return_centers, exclude_mincircle)
         s = s / (self.scale ** 2)
         centers = centers / self.scale + self.shift if centers is not None else None
         return s, centers
