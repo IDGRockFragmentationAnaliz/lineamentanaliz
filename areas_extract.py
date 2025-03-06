@@ -18,7 +18,7 @@ from tqdm import tqdm
 
 def main():
     # lines_str_names = ["30",]
-    lines1_str = "30"
+    lines1_str = "120"
     root_path = Path("D:/1.ToSaver/profileimages/ShapeBaikal/lineaments")
     shape_path = root_path / ("FABDEM_" + lines1_str)
     

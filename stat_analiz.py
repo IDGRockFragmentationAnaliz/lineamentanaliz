@@ -17,7 +17,7 @@ from scipy.io import savemat, loadmat
 
 
 def main():
-    lines1_str = "30"
+    lines1_str = "120"
     root_path = Path("D:/1.ToSaver/profileimages/ShapeBaikal/lineaments")
     mat_path = root_path / ("areas_" + lines1_str + ".mat")
 
@@ -90,8 +90,8 @@ def main():
     for i in range(len(cdf["ecdf"])):
         axs[0].plot(xs, cdf["ecdf"][i], color="grey")
     for i in range(len(cdf["ecdf"])):
-        #axs[0].plot(xs, cdf["lognorm"][i], color="red")
-        axs[0].plot(xs, cdf["weibull"][i], color="blue")
+        axs[0].plot(xs, cdf["lognorm"][i], color="red")
+        #axs[0].plot(xs, cdf["weibull"][i], color="blue")
         #axs[0].plot(xs, cdf["paretoexp"][i], color="green")
     axs[0].set_xscale('log')
     # axs[0].set_yscale('log')
