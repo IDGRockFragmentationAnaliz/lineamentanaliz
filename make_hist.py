@@ -50,8 +50,6 @@ def main():
 	savemat((root_path / ("FABDEM_hist_" + lines1_str + ".mat")), data)
 
 
-
-
-
 if __name__ == '__main__':
 	main()
+	

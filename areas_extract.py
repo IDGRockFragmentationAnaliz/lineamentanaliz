@@ -15,13 +15,18 @@ from scipy.io import savemat
 from lineaments_map import LineamentsMap
 from tqdm import tqdm
 
+from tools import get_config
+
 
 def main():
     # lines_str_names = ["30",]
+    config = get_config()
+    print(config)
     lines1_str = "120"
-    root_path = Path("D:/1.ToSaver/profileimages/ShapeBaikal/lineaments")
-    shape_path = root_path / ("FABDEM_" + lines1_str)
+    root_path = Path(config["data_root"])
+    shape_path = root_path / ("FABDEM_" + lines1_str) / "lineaments_" + lines1_str
     
+    exit()
     with open(str(root_path / "config.json"), 'r') as file:
         data = json.load(file)
         buffer = data[lines1_str]["buffer"]*2  # radius -> diameter
