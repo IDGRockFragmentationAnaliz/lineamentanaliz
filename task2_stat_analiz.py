@@ -2,6 +2,8 @@ from pathlib import Path
 import cv2
 import numpy as np
 from pyrockstats.distrebutions import lognorm, weibull, paretoexp
+from shapely.geometry import Point, Polygon
+from shapely.vectorized import contains
 
 import matplotlib.pyplot as plt
 from pyrocksegmentation.basic_segmentator import Segmentator
@@ -16,6 +18,7 @@ import json
 from pyrockshape import shape_load
 from scipy.io import savemat, loadmat
 from tools import get_config
+from pyrockshape import shape_load
 
 
 def main():
@@ -24,14 +27,17 @@ def main():
     
     lines_type = "30"
     lines_type_folder = root_path / ("FABDEM_" + lines_type)
-    ensemble_file_name = "ensemble_all_areas_" + lines_type + ".json"
+    ensemble_file_name = "ensemble_areas_" + lines_type + ".json"
+    
+    pth = Path("D:/1.ToSaver/profileimages/ShapeBaikal/lineaments/FABDEM_30/areas")
+    polies, bbox = shape_load(pth)
     
     with open(str(lines_type_folder / ensemble_file_name), 'r') as file:
         data = json.load(file)
     
+    
     xs = np.logspace(3, 9, 500)
     bins = np.logspace(3, 9, 50)
-    
     
     min_area = np.pi * ((75) ** 2)
     max_area = 10 ** 8
@@ -62,10 +68,13 @@ def main():
         "paretoexp": distribution["paretoexp"].pdf(bins, xmin=min_area, xmax=max_area)
     }
     
-    
     ks = np.zeros(len(data))
     for i, key in tqdm(enumerate(data)):
+        poly = Polygon(polies[1])
         areas = np.array(data[key]["areas"])
+        centers = np.array(data[key]["centers"])
+        mask = contains(poly, centers[:, 0], centers[:, 1])
+        areas = areas[mask]
         ks[i] = ks_statistics.get_ks_estimation(areas, values_0, e_freq_0, xmin=min_area, xmax=max_area)
     
     confidance = ks_statistics.get_confidence_value(ks, 0.05)
@@ -73,7 +82,7 @@ def main():
     fig = plt.figure(figsize=(12, 6))
     axs = [fig.add_subplot(1, 2, 1),
            fig.add_subplot(1, 2, 2)]
-    # for i in range(len(cdf["ecdf"])):
+    
     axs[0].fill_between(xs, cdf["empirical"] - confidance, cdf["empirical"] + confidance,
                         color="gray")
     axs[0].plot(xs, cdf["empirical"], color="black")

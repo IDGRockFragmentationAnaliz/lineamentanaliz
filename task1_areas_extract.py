@@ -21,6 +21,7 @@ from tools import get_config
 def main():
     lines_types = ["30", "120", "400", "800"]
     root_path = Path(get_config()["data_root"])
+    assembl_len = 500
     
     lines_type = "30"
     lines_type_folder = root_path / ("FABDEM_" + lines_type)
@@ -40,7 +41,7 @@ def main():
     else:
         print("Файл базовой сегментации существует, переход к следующему шагу.")
     
-    data = get_synthetic_data(shape_path, buffer, rate=0.4)
+    data = get_synthetic_data(shape_path, buffer, assembl_len=assembl_len, rate=0.4)
     ensemble_file_name = "ensemble_areas_" + lines_type + ".json"
     file_path = lines_type_folder / ensemble_file_name
     with open(str(file_path), 'w+') as json_file:
@@ -59,7 +60,7 @@ def get_synthetic_data(path, buffer, assembl_len=10, rate=0.4):
     for i in tqdm(range(assembl_len)):
         areas, centers = line_map.get_areas_corrected(
             rate=rate,
-            return_centers=False,
+            return_centers=True,
             exclude_mincircle=True
         )
         samples_set = {
@@ -78,7 +79,7 @@ def get_base_data(path, buffer):
     """
     line_map = LineamentsMap(path, buffer)
     areas, centers = line_map.get_areas_corrected(
-        return_centers=False,
+        return_centers=True,
         exclude_mincircle=True
     )
     data = {
@@ -91,7 +92,7 @@ def get_base_data(path, buffer):
 def get_set():
     areas, centers = line_map.get_areas_corrected(
         rate=rate,
-        return_centers=False,
+        return_centers=True,
         exclude_mincircle=True
     )
     samples_set = {
