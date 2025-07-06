@@ -85,8 +85,18 @@ class LineamentsMap:
         centers = None
 
         image = self.make_image(lines)
-        segments = Segmentator(image).run()
-
+        segmentator = Segmentator(image)
+        segments = segmentator.run()
+        #img = segmentator.get_segment_image()
+        #cv2.imwrite("./data/image_3.png", img)
+        
+        # fig = plt.figure(figsize=(6, 6))
+        # axs = [fig.add_subplot(1, 1, 1)]
+        # axs[0].imshow(img)
+        # plt.show()
+        
+        #fig.savefig("./data/" + "all_stat" + ".png", dpi=300, bbox_inches='tight')
+        
         if return_centers is True:
             areas, centers = Extractor(segments).extruct_centers()
         else:

@@ -23,7 +23,7 @@ def main():
     root_path = Path(get_config()["data_root"])
     assembl_len = 500
     
-    lines_type = "30"
+    lines_type = "120"
     lines_type_folder = root_path / ("FABDEM_" + lines_type)
     
     shape_path = lines_type_folder / ("lineaments_" + lines_type)
@@ -55,7 +55,6 @@ def get_synthetic_data(path, buffer, assembl_len=10, rate=0.4):
     assembl_len: отвечает за величину за величину выходного ансамбля
     """
     line_map = LineamentsMap(path, buffer)
-    
     data = {}
     for i in tqdm(range(assembl_len)):
         areas, centers = line_map.get_areas_corrected(
