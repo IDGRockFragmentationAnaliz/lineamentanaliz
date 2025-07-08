@@ -24,28 +24,28 @@ from pyrockshape import shape_load
 
 
 def main():
-    lines_types = ["30", "120", "400", "800"]
-    root_path = Path(get_config()["data_root"])
-    region_number = 10
     lines_type = "120"
-    lines_type_folder = root_path / ("FABDEM_" + lines_type)
-    ensemble_file_name = "ensemble_areas_" + lines_type + ".json"
+    root_path = Path("D:/1.ToSaver/profileimages/ShapeBaikal/lineaments")
+    root_path = root_path / ("FABDEM_" + lines_type)
+    json_base_segmentation = root_path / ("areas_" + lines_type + ".json")
+    json_path_ensemble_segmentation = root_path / ("ensemble_areas_" + lines_type + ".json")
+    shape_areas = root_path / "areas"
     
-    pth = Path("D:/1.ToSaver/profileimages/ShapeBaikal/lineaments/FABDEM_30/areas")
-    polies, bbox = shape_load(pth)
+    with open(str(json_base_segmentation), 'r') as file:
+        data_base = json.load(file)
     
-    with open(str(lines_type_folder / ensemble_file_name), 'r') as file:
-        data = json.load(file)
+    with open(str(json_path_ensemble_segmentation), 'r') as file:
+        data_ensemble = json.load(file)
     
-    for name in data:
-        print(name)
+    exit()
+    
+    xmin = np.pi * ((300) ** 2)
+    xmax = 10 ** 10
     
     
-    min_area = np.pi * ((300) ** 2)
-    max_area = 10 ** 10
     
-    xs = np.logspace(np.log10(min_area), np.log10(max_area), 500)
-    bins = np.logspace(np.log10(min_area), np.log10(max_area), 50)
+    xs = np.logspace(np.log10(xmin), np.log10(xmax), 500)
+    bins = np.logspace(np.log10(xmin), np.log10(xmax), 50)
     
     
     def get_border_ar(key):
@@ -56,35 +56,35 @@ def main():
         return areas[mask]
         
     areas_0 = get_border_ar("1")
-    mask = areas_0 > min_area
+    mask = areas_0 > xmin
     areas_0 = areas_0[mask]
     
-    values_0, e_freq_0 = ecdf(areas_0, xmin=min_area, xmax=max_area)
+    values_0, e_freq_0 = ecdf(areas_0, xmin=xmin, xmax=xmax)
     
     theta = {
-        "lognorm": lognorm.fit(areas_0, xmin=min_area, xmax=max_area),
-        "weibull": weibull.fit(areas_0, xmin=min_area, xmax=max_area),
-        "paretoexp": paretoexp.fit(areas_0, xmin=min_area, xmax=max_area)
+        "lognorm": lognorm.fit(areas_0, xmin=xmin, xmax=xmax),
+        "weibull": weibull.fit(areas_0, xmin=xmin, xmax=xmax),
+        "paretoexp": paretoexp.fit(areas_0, xmin=xmin, xmax=xmax)
     }
     
     distribution = {
-        "lognorm": lognorm(*lognorm.fit(areas_0, xmin=min_area, xmax=max_area)),
-        "weibull": weibull(*weibull.fit(areas_0, xmin=min_area, xmax=max_area)),
-        "paretoexp": paretoexp(*paretoexp.fit(areas_0, xmin=min_area, xmax=max_area))
+        "lognorm": lognorm(*lognorm.fit(areas_0, xmin=xmin, xmax=xmax)),
+        "weibull": weibull(*weibull.fit(areas_0, xmin=xmin, xmax=xmax)),
+        "paretoexp": paretoexp(*paretoexp.fit(areas_0, xmin=xmin, xmax=xmax))
     }
     
     cdf = {
         "empirical": empirical_cdf_gen(values_0, e_freq_0)(xs),
-        "lognorm": distribution["lognorm"].cdf(xs, xmin=min_area, xmax=max_area),
-        "weibull": distribution["weibull"].cdf(xs, xmin=min_area, xmax=max_area),
-        "paretoexp": distribution["paretoexp"].cdf(xs, xmin=min_area, xmax=max_area)
+        "lognorm": distribution["lognorm"].cdf(xs, xmin=xmin, xmax=xmax),
+        "weibull": distribution["weibull"].cdf(xs, xmin=xmin, xmax=xmax),
+        "paretoexp": distribution["paretoexp"].cdf(xs, xmin=xmin, xmax=xmax)
     }
     
     pdf = {
         "empirical": np.histogram(areas_0, bins=bins, density=True)[0],
-        "lognorm": distribution["lognorm"].pdf(bins, xmin=min_area, xmax=max_area),
-        "weibull": distribution["weibull"].pdf(bins, xmin=min_area, xmax=max_area),
-        "paretoexp": distribution["paretoexp"].pdf(bins, xmin=min_area, xmax=max_area)
+        "lognorm": distribution["lognorm"].pdf(bins, xmin=xmin, xmax=xmax),
+        "weibull": distribution["weibull"].pdf(bins, xmin=xmin, xmax=xmax),
+        "paretoexp": distribution["paretoexp"].pdf(bins, xmin=xmin, xmax=xmax)
     }
     
     ks = np.zeros(len(data))
@@ -94,7 +94,7 @@ def main():
         centers = np.array(data[key]["centers"])
         mask = contains(poly, centers[:, 0], centers[:, 1])
         areas = areas[mask]
-        ks[i] = ks_statistics.get_ks_estimation(areas, values_0, e_freq_0, xmin=min_area, xmax=max_area)
+        ks[i] = ks_statistics.get_ks_estimation(areas, values_0, e_freq_0, xmin=xmin, xmax=xmax)
     
     confidance = ks_statistics.get_confidence_value(ks, 0.05)
     ks_norm = {
@@ -139,7 +139,7 @@ def main():
     axs[0].legend(loc='lower right', fontsize=16, prop=custom_font)
     axs[0].grid("on")
     axs[0].set_ylim([0, 1])
-    axs[0].set_xlim([min_area, max_area])
+    axs[0].set_xlim([xmin, xmax])
     axs[0].set_xlabel(r's, мкм$^\mathregular{2}$', fontproperties=custom_font, size=16)
     for label in axs[0].get_xticklabels():
         label.set_fontproperties(custom_font)
