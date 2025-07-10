@@ -20,7 +20,7 @@ from pyrockshape import shape_load
 from scipy.io import savemat, loadmat
 from tools import get_config
 from pyrockshape import shape_load
-
+from estimator import Estimator
 
 
 def main():
@@ -29,7 +29,7 @@ def main():
     root_path = root_path / ("FABDEM_" + lines_type)
     json_base_segmentation = root_path / ("areas_" + lines_type + ".json")
     json_path_ensemble_segmentation = root_path / ("ensemble_areas_" + lines_type + ".json")
-    shape_areas = root_path / "areas"
+    shape_areas_path = root_path / "areas"
     
     with open(str(json_base_segmentation), 'r') as file:
         data_base = json.load(file)
@@ -37,10 +37,55 @@ def main():
     with open(str(json_path_ensemble_segmentation), 'r') as file:
         data_ensemble = json.load(file)
     
-    exit()
+    polies, bbox = shape_load(shape_areas_path)
     
-    xmin = np.pi * ((300) ** 2)
-    xmax = 10 ** 10
+    for i, poly in enumerate(polies):
+        areas = get_border_aras(poly, data_base)
+        
+        ensemble = {}
+        for number in data_ensemble:
+            ensemble[number] = get_border_aras(poly, data_ensemble[number])
+        
+        ks = Estimator.ks_stats_estimate(areas, ensemble)
+        values, freqs = ecdf(ks)
+        plt.plot(values, freqs)
+        plt.show()
+        
+        exit()
+        fig = plt.figure(figsize=(12, 4))
+        axs = [fig.add_subplot(1, 1, 1)]
+        #
+        obj = Estimator(areas, lognorm)
+        values, freqs = obj.get_empirical()
+        distribution = obj.get_distribution()
+        ks_norm = obj.get_ks_norm()
+        print("lognorm: ",ks_norm)
+        #
+        axs[0].plot(np.log10(values), distribution.cdf(values))
+        axs[0].plot(np.log10(values), kse.cdf(values))
+        #
+        obj = Estimator(areas, paretoexp)
+        values, freqs = obj.get_empirical()
+        distribution = obj.get_distribution()
+        axs[0].plot(np.log10(values), distribution.cdf(values))
+        ks_norm = obj.get_ks_norm()
+        print("paretoexp: ",ks_norm)
+        #
+        obj = Estimator(areas, weibull)
+        values, freqs = obj.get_empirical()
+        distribution = obj.get_distribution()
+        axs[0].plot(np.log10(values), distribution.cdf(values))
+        ks_norm = obj.get_ks_norm()
+        print("weibull: ",ks_norm)
+        #
+        plt.show()
+        exit()
+    
+    return
+    
+    # exit()
+    # xmin = np.pi * ((300) ** 2)
+    # xmax = 10 ** 10
     
     
     
@@ -118,7 +163,7 @@ def main():
         "paretoexp": get_p_value("paretoexp")
     }
     
-    #print("p_value", p_value)
+    
     print(theta)
     exit()
     
@@ -160,6 +205,13 @@ def main():
     file_path = save_pic / ("region_" + str(region_number))
     fig.savefig(str(file_path.with_suffix(".png")), dpi=300, bbox_inches='tight')
     #plt.show()
+
+def get_border_aras(poly, data):
+    poly = Polygon(poly)
+    areas = np.array(data["areas"])
+    centers = np.array(data["centers"])
+    mask = contains(poly, centers[:, 0], centers[:, 1])
+    return areas[mask]
 
 
 if __name__ == '__main__':
