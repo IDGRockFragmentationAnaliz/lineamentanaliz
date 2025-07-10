@@ -40,128 +40,28 @@ def main():
     polies, bbox = shape_load(shape_areas_path)
     
     for i, poly in enumerate(polies):
+        print("area number 1:")
         areas = get_border_aras(poly, data_base)
-        
         ensemble = {}
         for number in data_ensemble:
             ensemble[number] = get_border_aras(poly, data_ensemble[number])
         
         ks = Estimator.ks_stats_estimate(areas, ensemble)
-        values, freqs = ecdf(ks)
-        plt.plot(values, freqs)
-        plt.show()
+        estimator = {
+            "lognorm": Estimator(areas, lognorm),
+            "paretoexp": Estimator(areas, paretoexp),
+            "weibull": Estimator(areas, weibull)
+        }
         
-        exit()
-        fig = plt.figure(figsize=(12, 4))
-        axs = [fig.add_subplot(1, 1, 1)]
-        #
-        obj = Estimator(areas, lognorm)
-        values, freqs = obj.get_empirical()
-        distribution = obj.get_distribution()
-        ks_norm = obj.get_ks_norm()
-        print("lognorm: ",ks_norm)
-        #
-        axs[0].plot(np.log10(values), distribution.cdf(values))
-        axs[0].plot(np.log10(values), kse.cdf(values))
-        #
-        obj = Estimator(areas, paretoexp)
-        values, freqs = obj.get_empirical()
-        distribution = obj.get_distribution()
-        axs[0].plot(np.log10(values), distribution.cdf(values))
-        ks_norm = obj.get_ks_norm()
-        print("paretoexp: ",ks_norm)
-        #
-        obj = Estimator(areas, weibull)
-        values, freqs = obj.get_empirical()
-        distribution = obj.get_distribution()
-        axs[0].plot(np.log10(values), distribution.cdf(values))
-        ks_norm = obj.get_ks_norm()
-        print("weibull: ",ks_norm)
-        #
-        plt.show()
-        exit()
+        p_lognorm = estimator["lognorm"].get_p_value(ks)
+        p_paretoexp = estimator["paretoexp"].get_p_value(ks)
+        p_weibull = estimator["weibull"].get_p_value(ks)
+        print("p_lognorm:", p_lognorm)
+        print("p_paretoexp:", p_paretoexp)
+        print("p_weibull:", p_weibull)
+        continue
     
     return
-    
-    # exit()
-    # xmin = np.pi * ((300) ** 2)
-    # xmax = 10 ** 10
-    
-    
-    
-    xs = np.logspace(np.log10(xmin), np.log10(xmax), 500)
-    bins = np.logspace(np.log10(xmin), np.log10(xmax), 50)
-    
-    
-    def get_border_ar(key):
-        poly = Polygon(polies[region_number])
-        areas = np.array(data[key]["areas"])
-        centers = np.array(data[key]["centers"])
-        mask = contains(poly, centers[:, 0], centers[:, 1])
-        return areas[mask]
-        
-    areas_0 = get_border_ar("1")
-    mask = areas_0 > xmin
-    areas_0 = areas_0[mask]
-    
-    values_0, e_freq_0 = ecdf(areas_0, xmin=xmin, xmax=xmax)
-    
-    theta = {
-        "lognorm": lognorm.fit(areas_0, xmin=xmin, xmax=xmax),
-        "weibull": weibull.fit(areas_0, xmin=xmin, xmax=xmax),
-        "paretoexp": paretoexp.fit(areas_0, xmin=xmin, xmax=xmax)
-    }
-    
-    distribution = {
-        "lognorm": lognorm(*lognorm.fit(areas_0, xmin=xmin, xmax=xmax)),
-        "weibull": weibull(*weibull.fit(areas_0, xmin=xmin, xmax=xmax)),
-        "paretoexp": paretoexp(*paretoexp.fit(areas_0, xmin=xmin, xmax=xmax))
-    }
-    
-    cdf = {
-        "empirical": empirical_cdf_gen(values_0, e_freq_0)(xs),
-        "lognorm": distribution["lognorm"].cdf(xs, xmin=xmin, xmax=xmax),
-        "weibull": distribution["weibull"].cdf(xs, xmin=xmin, xmax=xmax),
-        "paretoexp": distribution["paretoexp"].cdf(xs, xmin=xmin, xmax=xmax)
-    }
-    
-    pdf = {
-        "empirical": np.histogram(areas_0, bins=bins, density=True)[0],
-        "lognorm": distribution["lognorm"].pdf(bins, xmin=xmin, xmax=xmax),
-        "weibull": distribution["weibull"].pdf(bins, xmin=xmin, xmax=xmax),
-        "paretoexp": distribution["paretoexp"].pdf(bins, xmin=xmin, xmax=xmax)
-    }
-    
-    ks = np.zeros(len(data))
-    for i, key in tqdm(enumerate(data)):
-        poly = Polygon(polies[region_number])
-        areas = np.array(data[key]["areas"])
-        centers = np.array(data[key]["centers"])
-        mask = contains(poly, centers[:, 0], centers[:, 1])
-        areas = areas[mask]
-        ks[i] = ks_statistics.get_ks_estimation(areas, values_0, e_freq_0, xmin=xmin, xmax=xmax)
-    
-    confidance = ks_statistics.get_confidence_value(ks, 0.05)
-    ks_norm = {
-        "lognorm": np.max(np.abs(cdf["empirical"] - cdf["lognorm"])),
-        "weibull": np.max(np.abs(cdf["empirical"] - cdf["weibull"])),
-        "paretoexp": np.max(np.abs(cdf["empirical"] - cdf["paretoexp"]))
-    }
-    
-    def get_p_value(name):
-        ks_values, ks_freq = ecdf(ks)
-        p_idx = np.where(ks_values > ks_norm[name])[0]
-        if len(p_idx) == 0:
-            p_idx = len(ks_values) - 1
-        else:
-            p_idx = p_idx[0]
-        return 1 - ks_freq[p_idx]
-    
-    p_value = {
-        "lognorm": get_p_value("lognorm"),
-        "weibull": get_p_value("weibull"),
-        "paretoexp": get_p_value("paretoexp")
-    }
     
     
     print(theta)
@@ -205,6 +105,7 @@ def main():
     file_path = save_pic / ("region_" + str(region_number))
     fig.savefig(str(file_path.with_suffix(".png")), dpi=300, bbox_inches='tight')
     #plt.show()
+
 
 def get_border_aras(poly, data):
     poly = Polygon(poly)

@@ -33,6 +33,7 @@ class Estimator:
         self.values = None
         self.freqs = None
         self.ks_norm = None
+        self.p_value = None
     
     def get_theta(self):
         if self.theta is not None:
@@ -60,6 +61,20 @@ class Estimator:
         distribution = self.get_distribution()
         self.ks_norm = np.max(np.abs(distribution.cdf(values) - freqs))
         return self.ks_norm
+    
+    def get_p_value(self, ks):
+        if self.p_value is not None:
+            return self.p_value
+        values, freqs = ecdf(ks)
+        d = self.get_ks_norm()
+        idx = np.searchsorted(values, d, side='right')
+        if idx == 0:
+            p_value = 1.0  # Если D меньше всех значений в self.ks
+        else:
+            p_value = 1.0 - freqs[idx - 1]
+        self.p_value = p_value
+        return self.p_value
+
     
     @classmethod
     def ks_stats_estimate(cls, x, ensamble, xmin=None, xmax=None):
