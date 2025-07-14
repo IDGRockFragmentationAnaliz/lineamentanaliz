@@ -23,7 +23,7 @@ def main():
     root_path = Path(get_config()["data_root"])
     assembl_len = 500
     
-    lines_type = "120"
+    lines_type = "30"
     lines_type_folder = root_path / ("FABDEM_" + lines_type)
     
     shape_path = lines_type_folder / ("lineaments_" + lines_type)
@@ -41,7 +41,7 @@ def main():
     else:
         print("Файл базовой сегментации существует, переход к следующему шагу.")
     
-    data = get_synthetic_data(shape_path, buffer, assembl_len=assembl_len, rate=0.4)
+    data = get_synthetic_data(shape_path, buffer, assembl_len=assembl_len, rate=0.3)
     ensemble_file_name = "ensemble_areas_" + lines_type + ".json"
     file_path = lines_type_folder / ensemble_file_name
     with open(str(file_path), 'w+') as json_file:

@@ -20,6 +20,7 @@ from pyrockshape import shape_load
 from scipy.io import savemat, loadmat
 from tools import get_config
 from pyrockshape import shape_load
+from pyrockstats.bootstrap.ks_statistics import get_confidence_value
 
 
 class Estimator:
@@ -85,4 +86,9 @@ class Estimator:
             values, freqs = ecdf(ensamble[number])
             ks[int(number)] = np.max(np.abs(cdf(values) - freqs))
         return ks
-
+    
+    @classmethod
+    def get_confidance(cls, ks, alpha):
+        return get_confidence_value(ks, alpha)
+    
+    

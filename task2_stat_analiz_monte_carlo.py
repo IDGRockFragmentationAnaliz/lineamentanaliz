@@ -19,7 +19,6 @@ import json
 from pyrockshape import shape_load
 from scipy.io import savemat, loadmat
 from tools import get_config
-from pyrockshape import shape_load
 from estimator import Estimator
 
 
@@ -40,7 +39,7 @@ def main():
     polies, bbox = shape_load(shape_areas_path)
     
     for i, poly in enumerate(polies):
-        print("area number 1:")
+        print("area number:",i)
         areas = get_border_aras(poly, data_base)
         ensemble = {}
         for number in data_ensemble:
@@ -53,12 +52,21 @@ def main():
             "weibull": Estimator(areas, weibull)
         }
         
+        confidance = Estimator.get_confidance(ks, 0.05)
+        print("confidance", confidance)
         p_lognorm = estimator["lognorm"].get_p_value(ks)
         p_paretoexp = estimator["paretoexp"].get_p_value(ks)
         p_weibull = estimator["weibull"].get_p_value(ks)
-        print("p_lognorm:", p_lognorm)
-        print("p_paretoexp:", p_paretoexp)
-        print("p_weibull:", p_weibull)
+        
+        print("p_lognorm:", p_lognorm,
+              "d:", estimator["lognorm"].get_ks_norm()
+              )
+        print("p_paretoexp:", p_paretoexp,
+              "d:", estimator["paretoexp"].get_ks_norm()
+              )
+        print("p_weibull:", p_weibull,
+              "d:", estimator["weibull"].get_ks_norm()
+              )
         continue
     
     return
